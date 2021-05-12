@@ -3,4 +3,10 @@
 .*.*.swp
 .*.swp
 
-todo.txt
+todo.md
+.vscode
+
+linkedList.*
+nte_old.c
+nte.c
+Makefile

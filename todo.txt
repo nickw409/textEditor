@@ -1,6 +1,0 @@
-1) Limit horizontal movement to end of current line
-2) Move over to ncurses (done)
-3) Allow file modification
-4) Color code certain words
-5) Implement text scrollling
-   Implement buffer system for text lines
