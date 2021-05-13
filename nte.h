@@ -9,6 +9,9 @@
 #include <fstream>
 
 #define DEFAULT_BUFFLEN 1024
+#define LINE_FEED 10
+#define TAB 9
+#define TAB_LENGTH 3
 
 class Editor
 {

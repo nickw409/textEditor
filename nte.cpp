@@ -30,9 +30,9 @@ void Editor::GetError(std::string err)
 
 void Editor::GetInput()
 {
-    int ch;
+    int ch = 0;
 
-    while ((ch = getch()) != KEY_END)
+    while (ch != KEY_F(1) && (ch = getch()) != KEY_END)
     {
         switch(ch)
         {
@@ -46,8 +46,23 @@ void Editor::GetInput()
                 DeleteChar(GetLineIndex(cursor_y_), cursor_x_);
                 RefreshScreen();
                 break;
+            case LINE_FEED:
+                AddRow(std::string(""), GetLineIndex(cursor_y_+1));
+                ProcessArrowKey(KEY_DOWN);
+                RefreshScreen();
+                break;
+            case TAB:
+                EditLine(GetLineIndex(cursor_y_), cursor_x_, std::string(TAB_LENGTH, 32));
+                for (int i = 0; i < TAB_LENGTH; ++i)
+                {
+                    ++cursor_x_;
+                }
+                RefreshScreen();
+            case KEY_F(1):
+                SaveFile();
+                break;
             default:
-                if (31 < ch < 127)
+                if (31 < ch < 127 && ch != '\t')
                 {
                     EditLine(GetLineIndex(cursor_y_), cursor_x_, std::string(1, ch));
                     ++cursor_x_;
@@ -116,6 +131,7 @@ void Editor::ProcessArrowKey(int c)
 void Editor::RefreshScreen()
 {
     int line;
+    getmaxyx(stdscr, screen_height_, screen_width_);
     move(0, 0);
     clear();
     for (int i = 0; i < num_lines_; ++i)
@@ -123,7 +139,7 @@ void Editor::RefreshScreen()
         line = i + row_offset_;
         mvprintw(i, 0, "%s", lines_[line].c_str());
     }
-    move(0, 0);
+    move(cursor_y_, cursor_x_);
     refresh();
 }
 
@@ -184,8 +200,8 @@ void Editor::OpenFile()
 {
     char c[DEFAULT_BUFFLEN];
     std::string str;
-    std::ifstream fs;
-    fs.open(file_, std::fstream::in);
+    std::fstream fs;
+    fs.open(file_, std::fstream::in | std::fstream::out | std::fstream::trunc);
     if ((fs.rdstate() & std::fstream::failbit) != 0)
     {
         fs.close();
@@ -201,9 +217,26 @@ void Editor::OpenFile()
     RefreshScreen();
 }
 
+void Editor::SaveFile()
+{
+    std::fstream fs;
+    fs.open(file_, std::fstream::out);
+    if ((fs.rdstate() & std::fstream::failbit) != 0)
+    {
+        fs.close();
+        GetError("Failure opening file stream.");
+    }
+    for (int i = 0; i < num_lines_; ++i)
+    {
+        fs.write(lines_[i].c_str(), lines_[i].length());
+        fs.write("\n", 1);
+    }
+    fs.close();
+}
+
 int Editor::GetLineIndex(int row)
 {
-    if (row + row_offset_ >= num_lines_)
+    if (row + row_offset_ > num_lines_)
     {
         GetError("Row in GetLineIndex out of bounds");
     }
